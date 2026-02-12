@@ -764,16 +764,24 @@
             }
         }
 
-        // 画像タップで一時停止/再開（自動モード時のみ）
+        // 画像タップ: 自動モード→一時停止/再開、手動モード→次の解像度へ
         document.querySelector('.quiz-canvas-container').addEventListener('click', () => {
-            if (quizState.mode !== 'auto') return;
-            if (quizState.isAutoPlaying) {
-                stopAutoPlay();
-                btnPausePlay.textContent = '▶ つづける';
+            if (quizState.mode === 'auto') {
+                if (quizState.isAutoPlaying) {
+                    stopAutoPlay();
+                    btnPausePlay.textContent = '▶ つづける';
+                } else {
+                    const question = quizState.questions[quizState.currentIndex];
+                    resumeAutoPlay(question);
+                    btnPausePlay.textContent = '⏸ いったんとめる';
+                }
             } else {
-                const question = quizState.questions[quizState.currentIndex];
-                resumeAutoPlay(question);
-                btnPausePlay.textContent = '⏸ いったんとめる';
+                if (quizState.manualStep < MANUAL_STEPS.length - 1) {
+                    quizState.manualStep++;
+                    quizState.currentSliderVal = MANUAL_STEPS[quizState.manualStep];
+                    drawQuizFrame(quizState.currentSliderVal);
+                    renderStepIndicator();
+                }
             }
         });
 

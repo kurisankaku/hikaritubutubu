@@ -129,7 +129,7 @@
             50% { transform: translateY(-6px); }
         }
 
-        /* === Color Block (Slides 1, 3, 5) === */
+        /* === Color Block (Slides 2, 4, 6) === */
         .color-block {
             width: min(280px, 65vw);
             height: min(280px, 65vw);
@@ -137,7 +137,7 @@
             margin: 20px 0;
         }
 
-        /* === Photo Grid (Slides 2, 4, 6) === */
+        /* === Photo Grid (Slides 3, 5, 7) === */
         .photo-grid {
             display: flex;
             flex-wrap: wrap;
@@ -183,7 +183,48 @@
             color: #888;
         }
 
-        /* === Color Trio (Slide 7) === */
+        /* === Light Glow (Slide 0) === */
+        .light-glow {
+            width: min(220px, 55vw);
+            height: min(220px, 55vw);
+            border-radius: 50%;
+            background: radial-gradient(circle, #fff 0%, #fffbe0 30%, #ffdd44 70%, rgba(255, 200, 0, 0) 100%);
+            box-shadow: 0 0 80px rgba(255, 230, 100, 0.6), 0 0 160px rgba(255, 200, 0, 0.3);
+            animation: light-pulse 3s ease-in-out infinite;
+            margin: 20px 0;
+        }
+
+        @keyframes light-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 80px rgba(255, 230, 100, 0.6), 0 0 160px rgba(255, 200, 0, 0.3); }
+            50% { transform: scale(1.08); box-shadow: 0 0 100px rgba(255, 230, 100, 0.8), 0 0 200px rgba(255, 200, 0, 0.4); }
+        }
+
+        /* === Labeled Color Circles (Slide 1) === */
+        .color-trio-labeled {
+            display: flex;
+            gap: 24px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .color-trio-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .color-trio-item .color-circle {
+            width: 90px;
+            height: 90px;
+        }
+
+        .color-trio-label {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        /* === Color Trio (Slide 8) === */
         .color-trio {
             display: flex;
             gap: 20px;
@@ -211,7 +252,7 @@
             50% { transform: scale(1.12); }
         }
 
-        /* === Mixing Slides (Slides 8, 9, 10) === */
+        /* === Mixing Slides (Slides 9, 10, 11) === */
         .component-bars {
             display: flex;
             flex-direction: column;
@@ -274,7 +315,7 @@
             margin: 8px 0;
         }
 
-        /* === Color Wheel (Slide 11) === */
+        /* === Color Wheel (Slide 12) === */
         .wheel-canvas-container {
             margin: 16px 0;
         }
@@ -354,6 +395,20 @@
                 font-size: 1.2rem;
             }
 
+            .light-glow {
+                width: min(320px, 40vh);
+                height: min(320px, 40vh);
+            }
+
+            .color-trio-item .color-circle {
+                width: 120px;
+                height: 120px;
+            }
+
+            .color-trio-label {
+                font-size: 1.8rem;
+            }
+
             .color-circle {
                 width: 110px;
                 height: 110px;
@@ -380,8 +435,43 @@
     <!-- Back Button (for parents) -->
     <button class="btn-back" id="btnBack" style="display:none;">← もどる</button>
 
-    <!-- ===== Slide 0: あかいろ 紹介 ===== -->
+    <!-- ===== Slide 0: ひかりの ひみつ（導入） ===== -->
     <div id="slide-0" class="screen active">
+        <div class="slide-content">
+            <h1 class="slide-heading" style="color: #ffeba7;">おひさまの ひかり</h1>
+            <div class="light-glow"></div>
+            <p class="slide-text">おひさまの ひかりって しってる？</p>
+            <p class="slide-text-emphasis">じつは ひかりには<br>ひみつが あるんだよ！</p>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 1: 3つの いろ ===== -->
+    <div id="slide-1" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading" style="color: #ffeba7;">ひかりは 3つの いろ！</h1>
+            <div class="color-trio-labeled">
+                <div class="color-trio-item">
+                    <div class="color-circle" style="background: #FF0000; box-shadow: 0 0 30px rgba(255,0,0,0.5);"></div>
+                    <span class="color-trio-label" style="color: #FF4444;">あか</span>
+                </div>
+                <div class="color-trio-item">
+                    <div class="color-circle" style="background: #00CC00; box-shadow: 0 0 30px rgba(0,220,0,0.4);"></div>
+                    <span class="color-trio-label" style="color: #44DD44;">みどり</span>
+                </div>
+                <div class="color-trio-item">
+                    <div class="color-circle" style="background: #2244FF; box-shadow: 0 0 30px rgba(0,80,255,0.5);"></div>
+                    <span class="color-trio-label" style="color: #4488FF;">あお</span>
+                </div>
+            </div>
+            <p class="slide-text">ひかりは この 3つの いろで<br>できているよ！</p>
+            <p class="slide-text-emphasis">ひとつずつ みてみよう！</p>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 2: あかいろ 紹介 ===== -->
+    <div id="slide-2" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading" style="color: #FF4444;">あかいろ</h1>
             <div class="color-block" style="background: #FF0000; box-shadow: 0 0 60px rgba(255,0,0,0.5);"></div>
@@ -390,8 +480,8 @@
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 1: あかいろの もの ===== -->
-    <div id="slide-1" class="screen">
+    <!-- ===== Slide 3: あかいろの もの ===== -->
+    <div id="slide-3" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading" style="color: #FF4444;">あかいろの もの</h1>
             <div class="photo-grid">
@@ -420,8 +510,8 @@
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 2: みどりいろ 紹介 ===== -->
-    <div id="slide-2" class="screen">
+    <!-- ===== Slide 4: みどりいろ 紹介 ===== -->
+    <div id="slide-4" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading" style="color: #44DD44;">みどりいろ</h1>
             <div class="color-block" style="background: #00CC00; box-shadow: 0 0 60px rgba(0,220,0,0.4);"></div>
@@ -430,8 +520,8 @@
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 3: みどりいろの もの ===== -->
-    <div id="slide-3" class="screen">
+    <!-- ===== Slide 5: みどりいろの もの ===== -->
+    <div id="slide-5" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading" style="color: #44DD44;">みどりいろの もの</h1>
             <div class="photo-grid">
@@ -460,8 +550,8 @@
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 4: あおいろ 紹介 ===== -->
-    <div id="slide-4" class="screen">
+    <!-- ===== Slide 6: あおいろ 紹介 ===== -->
+    <div id="slide-6" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading" style="color: #4488FF;">あおいろ</h1>
             <div class="color-block" style="background: #2244FF; box-shadow: 0 0 60px rgba(0,80,255,0.5);"></div>
@@ -470,8 +560,8 @@
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 5: あおいろの もの ===== -->
-    <div id="slide-5" class="screen">
+    <!-- ===== Slide 7: あおいろの もの ===== -->
+    <div id="slide-7" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading" style="color: #4488FF;">あおいろの もの</h1>
             <div class="photo-grid">
@@ -496,8 +586,8 @@
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 6: つなぎの説明 ===== -->
-    <div id="slide-6" class="screen">
+    <!-- ===== Slide 8: つなぎの説明 ===== -->
+    <div id="slide-8" class="screen">
         <div class="slide-content">
             <div class="color-trio">
                 <div class="color-circle" style="background: #FF0000; box-shadow: 0 0 30px rgba(255,0,0,0.5);"></div>
@@ -511,8 +601,8 @@
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 7: あか + みどり = きいろ ===== -->
-    <div id="slide-7" class="screen">
+    <!-- ===== Slide 9: あか + みどり = きいろ ===== -->
+    <div id="slide-9" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading">あか + みどり = ？</h1>
             <div class="component-bars">
@@ -525,21 +615,21 @@
                 <div class="component-bar">
                     <span class="component-bar-label" style="color: #44DD44;">みどり</span>
                     <div class="component-bar-track">
-                        <div class="component-bar-fill" id="barFill7" style="background: #00CC00; width: 0%;"></div>
+                        <div class="component-bar-fill" id="barFill9" style="background: #00CC00; width: 0%;"></div>
                     </div>
                 </div>
             </div>
-            <div class="mixing-swatch" id="mixSwatch7" style="background: rgb(255,0,0);"></div>
-            <p class="result-label" id="resultLabel7" style="color: #FFFF00;">きいろ に なった！</p>
+            <div class="mixing-swatch" id="mixSwatch9" style="background: rgb(255,0,0);"></div>
+            <p class="result-label" id="resultLabel9" style="color: #FFFF00;">きいろ に なった！</p>
             <div class="mixing-buttons">
-                <button class="btn-replay" id="btnReplay7">もういちど ↩</button>
+                <button class="btn-replay" id="btnReplay9">もういちど ↩</button>
             </div>
         </div>
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 8: あか + あお = ピンクいろ ===== -->
-    <div id="slide-8" class="screen">
+    <!-- ===== Slide 10: あか + あお = ピンクいろ ===== -->
+    <div id="slide-10" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading">あか + あお = ？</h1>
             <div class="component-bars">
@@ -552,21 +642,21 @@
                 <div class="component-bar">
                     <span class="component-bar-label" style="color: #4488FF;">あお</span>
                     <div class="component-bar-track">
-                        <div class="component-bar-fill" id="barFill8" style="background: #2244FF; width: 0%;"></div>
+                        <div class="component-bar-fill" id="barFill10" style="background: #2244FF; width: 0%;"></div>
                     </div>
                 </div>
             </div>
-            <div class="mixing-swatch" id="mixSwatch8" style="background: rgb(255,0,0);"></div>
-            <p class="result-label" id="resultLabel8" style="color: #FF44FF;">ピンクいろ に なった！</p>
+            <div class="mixing-swatch" id="mixSwatch10" style="background: rgb(255,0,0);"></div>
+            <p class="result-label" id="resultLabel10" style="color: #FF44FF;">ピンクいろ に なった！</p>
             <div class="mixing-buttons">
-                <button class="btn-replay" id="btnReplay8">もういちど ↩</button>
+                <button class="btn-replay" id="btnReplay10">もういちど ↩</button>
             </div>
         </div>
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 9: みどり + あお = みずいろ ===== -->
-    <div id="slide-9" class="screen">
+    <!-- ===== Slide 11: みどり + あお = みずいろ ===== -->
+    <div id="slide-11" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading">みどり + あお = ？</h1>
             <div class="component-bars">
@@ -579,21 +669,21 @@
                 <div class="component-bar">
                     <span class="component-bar-label" style="color: #4488FF;">あお</span>
                     <div class="component-bar-track">
-                        <div class="component-bar-fill" id="barFill9" style="background: #2244FF; width: 0%;"></div>
+                        <div class="component-bar-fill" id="barFill11" style="background: #2244FF; width: 0%;"></div>
                     </div>
                 </div>
             </div>
-            <div class="mixing-swatch" id="mixSwatch9" style="background: rgb(0,204,0);"></div>
-            <p class="result-label" id="resultLabel9" style="color: #00FFFF;">みずいろ に なった！</p>
+            <div class="mixing-swatch" id="mixSwatch11" style="background: rgb(0,204,0);"></div>
+            <p class="result-label" id="resultLabel11" style="color: #00FFFF;">みずいろ に なった！</p>
             <div class="mixing-buttons">
-                <button class="btn-replay" id="btnReplay9">もういちど ↩</button>
+                <button class="btn-replay" id="btnReplay11">もういちど ↩</button>
             </div>
         </div>
         <button class="btn-next-slide">つぎへ →</button>
     </div>
 
-    <!-- ===== Slide 10: カラーホイール ===== -->
-    <div id="slide-10" class="screen">
+    <!-- ===== Slide 12: カラーホイール ===== -->
+    <div id="slide-12" class="screen">
         <div class="slide-content">
             <h1 class="slide-heading" style="color: #ffeba7;">3つの いろで<br>こんなに たくさん！</h1>
             <div class="wheel-canvas-container">
@@ -611,7 +701,7 @@
         // ========================================================
         const learnState = {
             currentSlide: 0,
-            totalSlides: 11,
+            totalSlides: 13,
             animationRAF: null,
             isAnimating: false
         };
@@ -620,26 +710,26 @@
         // Mixing slide configs (slide index → config)
         // ========================================================
         const MIXING_CONFIGS = {
-            7: {
+            9: {
                 baseColor: [255, 0, 0],
                 addColor: [0, 255, 0],
-                swatchId: 'mixSwatch7',
-                barFillId: 'barFill7',
-                resultLabelId: 'resultLabel7'
-            },
-            8: {
-                baseColor: [255, 0, 0],
-                addColor: [0, 0, 255],
-                swatchId: 'mixSwatch8',
-                barFillId: 'barFill8',
-                resultLabelId: 'resultLabel8'
-            },
-            9: {
-                baseColor: [0, 204, 0],
-                addColor: [0, 51, 255],
                 swatchId: 'mixSwatch9',
                 barFillId: 'barFill9',
                 resultLabelId: 'resultLabel9'
+            },
+            10: {
+                baseColor: [255, 0, 0],
+                addColor: [0, 0, 255],
+                swatchId: 'mixSwatch10',
+                barFillId: 'barFill10',
+                resultLabelId: 'resultLabel10'
+            },
+            11: {
+                baseColor: [0, 204, 0],
+                addColor: [0, 51, 255],
+                swatchId: 'mixSwatch11',
+                barFillId: 'barFill11',
+                resultLabelId: 'resultLabel11'
             }
         };
 
@@ -691,7 +781,7 @@
             btnBack.style.display = index > 0 ? '' : 'none';
 
             // Auto-start mixing animations
-            if (index >= 7 && index <= 9) {
+            if (index >= 9 && index <= 11) {
                 resetMixingSlide(index);
                 setTimeout(() => {
                     if (learnState.currentSlide === index) {
@@ -701,7 +791,7 @@
             }
 
             // Draw color wheel
-            if (index === 10) {
+            if (index === 12) {
                 requestAnimationFrame(drawColorWheel);
             }
         }
@@ -878,7 +968,7 @@
             btnBack.addEventListener('click', prevSlide);
 
             // Replay buttons
-            [7, 8, 9].forEach(slideIndex => {
+            [9, 10, 11].forEach(slideIndex => {
                 const btn = document.getElementById('btnReplay' + slideIndex);
                 if (btn) {
                     btn.addEventListener('click', () => {
