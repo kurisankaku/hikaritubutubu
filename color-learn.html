@@ -362,6 +362,25 @@
             transform: scale(0.95);
         }
 
+        .btn-mix {
+            font-size: 1.6rem;
+            padding: 16px 40px;
+            border: none;
+            border-radius: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            background: #4CAF50;
+            color: white;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: gentle-bounce 2s ease-in-out infinite;
+        }
+
+        .btn-mix:active {
+            transform: scale(0.95);
+        }
+
         .btn-restart {
             background: #FF9800;
         }
@@ -622,7 +641,8 @@
             <div class="mixing-swatch" id="mixSwatch9" style="background: rgb(255,0,0);"></div>
             <p class="result-label" id="resultLabel9" style="color: #FFFF00;">きいろ に なった！</p>
             <div class="mixing-buttons">
-                <button class="btn-replay" id="btnReplay9">もういちど ↩</button>
+                <button class="btn-mix" id="btnMix9">まぜてみよう！</button>
+                <button class="btn-replay" id="btnReplay9" style="display:none;">もういちど ↩</button>
             </div>
         </div>
         <button class="btn-next-slide">つぎへ →</button>
@@ -649,7 +669,8 @@
             <div class="mixing-swatch" id="mixSwatch10" style="background: rgb(255,0,0);"></div>
             <p class="result-label" id="resultLabel10" style="color: #FF44FF;">ピンクいろ に なった！</p>
             <div class="mixing-buttons">
-                <button class="btn-replay" id="btnReplay10">もういちど ↩</button>
+                <button class="btn-mix" id="btnMix10">まぜてみよう！</button>
+                <button class="btn-replay" id="btnReplay10" style="display:none;">もういちど ↩</button>
             </div>
         </div>
         <button class="btn-next-slide">つぎへ →</button>
@@ -676,7 +697,8 @@
             <div class="mixing-swatch" id="mixSwatch11" style="background: rgb(0,204,0);"></div>
             <p class="result-label" id="resultLabel11" style="color: #00FFFF;">みずいろ に なった！</p>
             <div class="mixing-buttons">
-                <button class="btn-replay" id="btnReplay11">もういちど ↩</button>
+                <button class="btn-mix" id="btnMix11">まぜてみよう！</button>
+                <button class="btn-replay" id="btnReplay11" style="display:none;">もういちど ↩</button>
             </div>
         </div>
         <button class="btn-next-slide">つぎへ →</button>
@@ -780,14 +802,9 @@
             // Show/hide back button
             btnBack.style.display = index > 0 ? '' : 'none';
 
-            // Auto-start mixing animations
+            // Reset mixing slides (wait for user to press "まぜてみよう" button)
             if (index >= 9 && index <= 11) {
                 resetMixingSlide(index);
-                setTimeout(() => {
-                    if (learnState.currentSlide === index) {
-                        startMixingAnimation(index);
-                    }
-                }, 500);
             }
 
             // Draw color wheel
@@ -823,6 +840,12 @@
             swatch.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
             barFill.style.width = '0%';
             resultLabel.classList.remove('show');
+
+            // Show mix button, hide replay button
+            const btnMix = document.getElementById('btnMix' + slideIndex);
+            const btnReplay = document.getElementById('btnReplay' + slideIndex);
+            if (btnMix) btnMix.style.display = '';
+            if (btnReplay) btnReplay.style.display = 'none';
         }
 
         function startMixingAnimation(slideIndex) {
@@ -858,6 +881,9 @@
                 } else {
                     learnState.isAnimating = false;
                     resultLabel.classList.add('show');
+                    // Show replay button
+                    const btnReplay = document.getElementById('btnReplay' + slideIndex);
+                    if (btnReplay) btnReplay.style.display = '';
                 }
             }
 
@@ -967,13 +993,23 @@
             // Back button
             btnBack.addEventListener('click', prevSlide);
 
-            // Replay buttons
+            // Mix buttons (start animation on press)
+            [9, 10, 11].forEach(slideIndex => {
+                const btnMix = document.getElementById('btnMix' + slideIndex);
+                if (btnMix) {
+                    btnMix.addEventListener('click', () => {
+                        btnMix.style.display = 'none';
+                        startMixingAnimation(slideIndex);
+                    });
+                }
+            });
+
+            // Replay buttons (reset to initial state)
             [9, 10, 11].forEach(slideIndex => {
                 const btn = document.getElementById('btnReplay' + slideIndex);
                 if (btn) {
                     btn.addEventListener('click', () => {
                         resetMixingSlide(slideIndex);
-                        setTimeout(() => startMixingAnimation(slideIndex), 300);
                     });
                 }
             });
