@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>いろの ふしぎ</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #111;
+            color: white;
+            font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* === Slide Progress Dots === */
+        .slide-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px;
+            background: rgba(17, 17, 17, 0.92);
+            z-index: 100;
+        }
+
+        .slide-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #444;
+            transition: background 0.3s, transform 0.3s;
+        }
+
+        .slide-dot.active {
+            background: #4db8ff;
+            transform: scale(1.4);
+        }
+
+        .slide-dot.visited {
+            background: #2a6a9e;
+        }
+
+        /* === Screen/Slide Management === */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: 100vh;
+            padding: 60px 20px 30px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* === Back Button (for parents) === */
+        .btn-back {
+            position: fixed;
+            top: 40px;
+            left: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #888;
+            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            z-index: 100;
+            font-family: inherit;
+        }
+
+        .btn-back:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* === Slide Content === */
+        .slide-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            justify-content: center;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .slide-heading {
+            font-size: 2.5rem;
+            margin: 0 0 10px;
+        }
+
+        .slide-text {
+            font-size: 1.6rem;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+
+        .slide-text-large {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffeba7;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+
+        .slide-text-emphasis {
+            font-size: 1.8rem;
+            color: #4db8ff;
+            margin: 16px 0;
+            animation: gentle-bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes gentle-bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+
+        /* === Color Block (Slides 1, 3, 5) === */
+        .color-block {
+            width: min(280px, 65vw);
+            height: min(280px, 65vw);
+            border-radius: 24px;
+            margin: 20px 0;
+        }
+
+        /* === Photo Grid (Slides 2, 4, 6) === */
+        .photo-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 14px;
+            max-width: 600px;
+            padding: 10px;
+        }
+
+        .photo-card {
+            background: #222;
+            border-radius: 12px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 140px;
+        }
+
+        .photo-card img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #333;
+        }
+
+        .photo-label {
+            margin-top: 6px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .photo-placeholder {
+            width: 120px;
+            height: 120px;
+            background: #333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            color: #888;
+        }
+
+        /* === Color Trio (Slide 7) === */
+        .color-trio {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .color-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .color-circle:nth-child(2) {
+            animation-delay: 0.3s;
+        }
+
+        .color-circle:nth-child(3) {
+            animation-delay: 0.6s;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.12); }
+        }
+
+        /* === Mixing Slides (Slides 8, 9, 10) === */
+        .component-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 85%;
+            max-width: 400px;
+            margin: 0 auto 20px;
+        }
+
+        .component-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            height: 40px;
+        }
+
+        .component-bar-label {
+            width: 70px;
+            font-size: 1.2rem;
+            text-align: right;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .component-bar-track {
+            flex: 1;
+            height: 100%;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .component-bar-fill {
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .mixing-swatch {
+            width: min(300px, 75vw);
+            height: min(200px, 45vw);
+            border-radius: 20px;
+            margin: 10px 0;
+            transition: background-color 0.05s linear;
+        }
+
+        .result-label {
+            font-size: 2.2rem;
+            font-weight: bold;
+            margin: 16px 0;
+            opacity: 0;
+            transition: opacity 0.8s ease;
+            min-height: 3rem;
+        }
+
+        .result-label.show {
+            opacity: 1;
+        }
+
+        .mixing-buttons {
+            margin: 8px 0;
+        }
+
+        /* === Color Wheel (Slide 11) === */
+        .wheel-canvas-container {
+            margin: 16px 0;
+        }
+
+        .wheel-canvas-container canvas {
+            width: min(320px, 75vw);
+            height: min(320px, 75vw);
+        }
+
+        /* === Buttons === */
+        .btn-next-slide {
+            font-size: 2rem;
+            padding: 20px 60px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            background: #2196F3;
+            color: white;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            margin-top: 20px;
+        }
+
+        .btn-next-slide:active {
+            transform: scale(0.95);
+        }
+
+        .btn-replay {
+            font-size: 1.1rem;
+            padding: 10px 28px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            background: #FF9800;
+            color: white;
+            transition: transform 0.1s;
+        }
+
+        .btn-replay:active {
+            transform: scale(0.95);
+        }
+
+        .btn-restart {
+            background: #FF9800;
+        }
+
+        /* === Tablet (iPad landscape) === */
+        @media (min-width: 768px) {
+            .color-block {
+                width: min(420px, 50vh);
+                height: min(420px, 50vh);
+            }
+
+            .photo-grid {
+                max-width: 1000px;
+                width: 1000px;
+                gap: 24px;
+            }
+
+            .photo-card {
+                width: 300px;
+                padding: 12px;
+            }
+
+            .photo-card img {
+                width: 200px;
+                height: 200px;
+            }
+
+            .photo-placeholder {
+                width: 200px;
+                height: 200px;
+                font-size: 1.2rem;
+            }
+
+            .color-circle {
+                width: 110px;
+                height: 110px;
+            }
+
+            .mixing-swatch {
+                width: min(450px, 50vh);
+                height: min(280px, 35vh);
+            }
+
+            .wheel-canvas-container canvas {
+                width: min(400px, 55vh);
+                height: min(400px, 55vh);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Progress Dots -->
+    <div class="slide-progress" id="slideProgress"></div>
+
+    <!-- Back Button (for parents) -->
+    <button class="btn-back" id="btnBack" style="display:none;">← もどる</button>
+
+    <!-- ===== Slide 0: あかいろ 紹介 ===== -->
+    <div id="slide-0" class="screen active">
+        <div class="slide-content">
+            <h1 class="slide-heading" style="color: #FF4444;">あかいろ</h1>
+            <div class="color-block" style="background: #FF0000; box-shadow: 0 0 60px rgba(255,0,0,0.5);"></div>
+            <p class="slide-text">あかいろの ものと いったら<br>なにかな？</p>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 1: あかいろの もの ===== -->
+    <div id="slide-1" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading" style="color: #FF4444;">あかいろの もの</h1>
+            <div class="photo-grid">
+                <div class="photo-card" style="border: 3px solid #FF4444;">
+                    <img src="images/color-learn/red/ringo.jpg" alt="りんご">
+                    <span class="photo-label">りんご</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #FF4444;">
+                    <img src="images/color-learn/red/tomato.jpg" alt="トマト">
+                    <span class="photo-label">トマト</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #FF4444;">
+                    <img src="images/color-learn/red/ichigo.jpg" alt="イチゴ">
+                    <span class="photo-label">イチゴ</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #FF4444;">
+                    <img src="images/color-learn/red/shoubousha.jpg" alt="しょうぼうしゃ">
+                    <span class="photo-label">しょうぼうしゃ</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #FF4444;">
+                    <img src="images/color-learn/red/posuto.jpg" alt="ポスト">
+                    <span class="photo-label">ポスト</span>
+                </div>
+            </div>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 2: みどりいろ 紹介 ===== -->
+    <div id="slide-2" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading" style="color: #44DD44;">みどりいろ</h1>
+            <div class="color-block" style="background: #00CC00; box-shadow: 0 0 60px rgba(0,220,0,0.4);"></div>
+            <p class="slide-text">みどりいろの ものと いったら<br>なにかな？</p>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 3: みどりいろの もの ===== -->
+    <div id="slide-3" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading" style="color: #44DD44;">みどりいろの もの</h1>
+            <div class="photo-grid">
+                <div class="photo-card" style="border: 3px solid #44DD44;">
+                    <img src="images/color-learn/green/kyuuri.jpg" alt="きゅうり">
+                    <span class="photo-label">きゅうり</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #44DD44;">
+                    <img src="images/color-learn/green/meron.jpg" alt="メロン">
+                    <span class="photo-label">メロン</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #44DD44;">
+                    <img src="images/color-learn/green/suika.jpg" alt="スイカ">
+                    <span class="photo-label">スイカ</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #44DD44;">
+                    <img src="images/color-learn/green/kaeru.jpg" alt="カエル">
+                    <span class="photo-label">カエル</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #44DD44;">
+                    <img src="images/color-learn/green/kame.jpg" alt="カメ">
+                    <span class="photo-label">カメ</span>
+                </div>
+            </div>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 4: あおいろ 紹介 ===== -->
+    <div id="slide-4" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading" style="color: #4488FF;">あおいろ</h1>
+            <div class="color-block" style="background: #2244FF; box-shadow: 0 0 60px rgba(0,80,255,0.5);"></div>
+            <p class="slide-text">あおいろの ものと いったら<br>なにかな？</p>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 5: あおいろの もの ===== -->
+    <div id="slide-5" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading" style="color: #4488FF;">あおいろの もの</h1>
+            <div class="photo-grid">
+                <div class="photo-card" style="border: 3px solid #4488FF;">
+                    <img src="images/color-learn/blue/umi.jpg" alt="うみ">
+                    <span class="photo-label">うみ</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #4488FF;">
+                    <img src="images/color-learn/blue/sora.jpg" alt="そら">
+                    <span class="photo-label">そら</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #4488FF;">
+                    <img src="images/color-learn/blue/iruka.jpg" alt="イルカ">
+                    <span class="photo-label">イルカ</span>
+                </div>
+                <div class="photo-card" style="border: 3px solid #4488FF;">
+                    <img src="images/color-learn/blue/kujira.png" alt="クジラ">
+                    <span class="photo-label">クジラ</span>
+                </div>
+            </div>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 6: つなぎの説明 ===== -->
+    <div id="slide-6" class="screen">
+        <div class="slide-content">
+            <div class="color-trio">
+                <div class="color-circle" style="background: #FF0000; box-shadow: 0 0 30px rgba(255,0,0,0.5);"></div>
+                <div class="color-circle" style="background: #00CC00; box-shadow: 0 0 30px rgba(0,220,0,0.4);"></div>
+                <div class="color-circle" style="background: #2244FF; box-shadow: 0 0 30px rgba(0,80,255,0.5);"></div>
+            </div>
+            <p class="slide-text">この 3つの いろで</p>
+            <p class="slide-text-large">ぜんぶの いろが<br>つくれるよ！</p>
+            <p class="slide-text-emphasis">ほんとうかな？<br>みてみよう！</p>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 7: あか + みどり = きいろ ===== -->
+    <div id="slide-7" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading">あか + みどり = ？</h1>
+            <div class="component-bars">
+                <div class="component-bar">
+                    <span class="component-bar-label" style="color: #FF4444;">あか</span>
+                    <div class="component-bar-track">
+                        <div class="component-bar-fill" style="background: #FF0000; width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="component-bar">
+                    <span class="component-bar-label" style="color: #44DD44;">みどり</span>
+                    <div class="component-bar-track">
+                        <div class="component-bar-fill" id="barFill7" style="background: #00CC00; width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mixing-swatch" id="mixSwatch7" style="background: rgb(255,0,0);"></div>
+            <p class="result-label" id="resultLabel7" style="color: #FFFF00;">きいろ に なった！</p>
+            <div class="mixing-buttons">
+                <button class="btn-replay" id="btnReplay7">もういちど ↩</button>
+            </div>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 8: あか + あお = ピンクいろ ===== -->
+    <div id="slide-8" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading">あか + あお = ？</h1>
+            <div class="component-bars">
+                <div class="component-bar">
+                    <span class="component-bar-label" style="color: #FF4444;">あか</span>
+                    <div class="component-bar-track">
+                        <div class="component-bar-fill" style="background: #FF0000; width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="component-bar">
+                    <span class="component-bar-label" style="color: #4488FF;">あお</span>
+                    <div class="component-bar-track">
+                        <div class="component-bar-fill" id="barFill8" style="background: #2244FF; width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mixing-swatch" id="mixSwatch8" style="background: rgb(255,0,0);"></div>
+            <p class="result-label" id="resultLabel8" style="color: #FF44FF;">ピンクいろ に なった！</p>
+            <div class="mixing-buttons">
+                <button class="btn-replay" id="btnReplay8">もういちど ↩</button>
+            </div>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 9: みどり + あお = みずいろ ===== -->
+    <div id="slide-9" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading">みどり + あお = ？</h1>
+            <div class="component-bars">
+                <div class="component-bar">
+                    <span class="component-bar-label" style="color: #44DD44;">みどり</span>
+                    <div class="component-bar-track">
+                        <div class="component-bar-fill" style="background: #00CC00; width: 100%;"></div>
+                    </div>
+                </div>
+                <div class="component-bar">
+                    <span class="component-bar-label" style="color: #4488FF;">あお</span>
+                    <div class="component-bar-track">
+                        <div class="component-bar-fill" id="barFill9" style="background: #2244FF; width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="mixing-swatch" id="mixSwatch9" style="background: rgb(0,204,0);"></div>
+            <p class="result-label" id="resultLabel9" style="color: #00FFFF;">みずいろ に なった！</p>
+            <div class="mixing-buttons">
+                <button class="btn-replay" id="btnReplay9">もういちど ↩</button>
+            </div>
+        </div>
+        <button class="btn-next-slide">つぎへ →</button>
+    </div>
+
+    <!-- ===== Slide 10: カラーホイール ===== -->
+    <div id="slide-10" class="screen">
+        <div class="slide-content">
+            <h1 class="slide-heading" style="color: #ffeba7;">3つの いろで<br>こんなに たくさん！</h1>
+            <div class="wheel-canvas-container">
+                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+            </div>
+            <p class="slide-text">あか、みどり、あおの<br>3つの いろを まぜると</p>
+            <p class="slide-text-large">ぜんぶの いろが<br>つくれるんだよ！</p>
+        </div>
+        <button class="btn-next-slide btn-restart" id="btnRestart">はじめから ↩</button>
+    </div>
+
+    <script>
+        // ========================================================
+        // State
+        // ========================================================
+        const learnState = {
+            currentSlide: 0,
+            totalSlides: 11,
+            animationRAF: null,
+            isAnimating: false
+        };
+
+        // ========================================================
+        // Mixing slide configs (slide index → config)
+        // ========================================================
+        const MIXING_CONFIGS = {
+            7: {
+                baseColor: [255, 0, 0],
+                addColor: [0, 255, 0],
+                swatchId: 'mixSwatch7',
+                barFillId: 'barFill7',
+                resultLabelId: 'resultLabel7'
+            },
+            8: {
+                baseColor: [255, 0, 0],
+                addColor: [0, 0, 255],
+                swatchId: 'mixSwatch8',
+                barFillId: 'barFill8',
+                resultLabelId: 'resultLabel8'
+            },
+            9: {
+                baseColor: [0, 204, 0],
+                addColor: [0, 51, 255],
+                swatchId: 'mixSwatch9',
+                barFillId: 'barFill9',
+                resultLabelId: 'resultLabel9'
+            }
+        };
+
+        // ========================================================
+        // Progress Dots
+        // ========================================================
+        const progressEl = document.getElementById('slideProgress');
+
+        function initProgressDots() {
+            progressEl.innerHTML = '';
+            for (let i = 0; i < learnState.totalSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'slide-dot';
+                if (i === 0) dot.classList.add('active');
+                progressEl.appendChild(dot);
+            }
+        }
+
+        function updateProgressDots() {
+            const dots = progressEl.querySelectorAll('.slide-dot');
+            dots.forEach((dot, i) => {
+                dot.classList.remove('active', 'visited');
+                if (i === learnState.currentSlide) {
+                    dot.classList.add('active');
+                } else if (i < learnState.currentSlide) {
+                    dot.classList.add('visited');
+                }
+            });
+        }
+
+        // ========================================================
+        // Slide Navigation
+        // ========================================================
+        const btnBack = document.getElementById('btnBack');
+
+        function showSlide(index) {
+            if (index < 0 || index >= learnState.totalSlides) return;
+
+            stopCurrentAnimation();
+
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById('slide-' + index).classList.add('active');
+            learnState.currentSlide = index;
+
+            updateProgressDots();
+            window.scrollTo(0, 0);
+
+            // Show/hide back button
+            btnBack.style.display = index > 0 ? '' : 'none';
+
+            // Auto-start mixing animations
+            if (index >= 7 && index <= 9) {
+                resetMixingSlide(index);
+                setTimeout(() => {
+                    if (learnState.currentSlide === index) {
+                        startMixingAnimation(index);
+                    }
+                }, 500);
+            }
+
+            // Draw color wheel
+            if (index === 10) {
+                requestAnimationFrame(drawColorWheel);
+            }
+        }
+
+        function nextSlide() {
+            if (learnState.currentSlide < learnState.totalSlides - 1) {
+                showSlide(learnState.currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (learnState.currentSlide > 0) {
+                showSlide(learnState.currentSlide - 1);
+            }
+        }
+
+        // ========================================================
+        // Mixing Animation (Slides 7, 8, 9)
+        // ========================================================
+        function resetMixingSlide(slideIndex) {
+            const config = MIXING_CONFIGS[slideIndex];
+            if (!config) return;
+
+            const swatch = document.getElementById(config.swatchId);
+            const barFill = document.getElementById(config.barFillId);
+            const resultLabel = document.getElementById(config.resultLabelId);
+
+            const [r, g, b] = config.baseColor;
+            swatch.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+            barFill.style.width = '0%';
+            resultLabel.classList.remove('show');
+        }
+
+        function startMixingAnimation(slideIndex) {
+            stopCurrentAnimation();
+            learnState.isAnimating = true;
+
+            const config = MIXING_CONFIGS[slideIndex];
+            if (!config) return;
+
+            const swatch = document.getElementById(config.swatchId);
+            const barFill = document.getElementById(config.barFillId);
+            const resultLabel = document.getElementById(config.resultLabelId);
+
+            const DURATION = 8000;
+            const startTime = performance.now();
+
+            function tick(now) {
+                if (!learnState.isAnimating || learnState.currentSlide !== slideIndex) return;
+
+                const elapsed = now - startTime;
+                const t = Math.min(elapsed / DURATION, 1.0);
+
+                // Calculate mixed color
+                const r = Math.min(255, Math.floor(config.baseColor[0] + config.addColor[0] * t));
+                const g = Math.min(255, Math.floor(config.baseColor[1] + config.addColor[1] * t));
+                const b = Math.min(255, Math.floor(config.baseColor[2] + config.addColor[2] * t));
+
+                swatch.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+                barFill.style.width = `${t * 100}%`;
+
+                if (t < 1.0) {
+                    learnState.animationRAF = requestAnimationFrame(tick);
+                } else {
+                    learnState.isAnimating = false;
+                    resultLabel.classList.add('show');
+                }
+            }
+
+            learnState.animationRAF = requestAnimationFrame(tick);
+        }
+
+        function stopCurrentAnimation() {
+            learnState.isAnimating = false;
+            if (learnState.animationRAF) {
+                cancelAnimationFrame(learnState.animationRAF);
+                learnState.animationRAF = null;
+            }
+        }
+
+        // ========================================================
+        // Color Wheel (Slide 10)
+        // ========================================================
+        function drawColorWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            const outerRadius = Math.min(cx, cy) - 40;
+            const innerRadius = outerRadius * 0.3;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw color ring
+            for (let angle = 0; angle < 360; angle += 0.5) {
+                const rad = angle * Math.PI / 180;
+                const nextRad = (angle + 1) * Math.PI / 180;
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, outerRadius, rad, nextRad);
+                ctx.arc(cx, cy, innerRadius, nextRad, rad, true);
+                ctx.closePath();
+
+                ctx.fillStyle = `hsl(${angle}, 100%, 50%)`;
+                ctx.fill();
+            }
+
+            // Center circle
+            ctx.beginPath();
+            ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#111';
+            ctx.fill();
+
+            // Labels around the wheel
+            const labels = [
+                { angle: 0, text: 'あか', color: '#FF4444' },
+                { angle: 60, text: 'きいろ', color: '#DDDD00' },
+                { angle: 120, text: 'みどり', color: '#44DD44' },
+                { angle: 180, text: 'みずいろ', color: '#00CCCC' },
+                { angle: 240, text: 'あお', color: '#4488FF' },
+                { angle: 300, text: 'ピンク', color: '#FF44FF' }
+            ];
+
+            ctx.font = 'bold 20px "Hiragino Kaku Gothic ProN", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            labels.forEach(label => {
+                // Convert to radians (canvas 0° is right/east, adjust so 0° maps to top)
+                const rad = (label.angle - 90) * Math.PI / 180;
+                const labelRadius = outerRadius + 26;
+                const x = cx + labelRadius * Math.cos(rad);
+                const y = cy + labelRadius * Math.sin(rad);
+
+                ctx.fillStyle = label.color;
+                ctx.fillText(label.text, x, y);
+            });
+        }
+
+        // ========================================================
+        // Image Fallback
+        // ========================================================
+        function setupImageFallbacks() {
+            document.querySelectorAll('.photo-card img').forEach(img => {
+                img.addEventListener('error', function () {
+                    this.style.display = 'none';
+                    if (this.nextElementSibling && this.nextElementSibling.classList.contains('photo-placeholder')) return;
+                    const placeholder = document.createElement('div');
+                    placeholder.className = 'photo-placeholder';
+                    placeholder.textContent = this.alt;
+                    this.parentNode.insertBefore(placeholder, this.nextElementSibling);
+                });
+            });
+        }
+
+        // ========================================================
+        // Event Listeners
+        // ========================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initProgressDots();
+            setupImageFallbacks();
+
+            // Next buttons
+            document.querySelectorAll('.btn-next-slide:not(#btnRestart)').forEach(btn => {
+                btn.addEventListener('click', nextSlide);
+            });
+
+            // Restart button
+            document.getElementById('btnRestart').addEventListener('click', () => {
+                showSlide(0);
+            });
+
+            // Back button
+            btnBack.addEventListener('click', prevSlide);
+
+            // Replay buttons
+            [7, 8, 9].forEach(slideIndex => {
+                const btn = document.getElementById('btnReplay' + slideIndex);
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        resetMixingSlide(slideIndex);
+                        setTimeout(() => startMixingAnimation(slideIndex), 300);
+                    });
+                }
+            });
+
+            // Show initial slide
+            showSlide(0);
+        });
+    </script>
+</body>
+
+</html>
