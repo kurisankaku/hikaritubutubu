@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ひかりの つぶつぶ クイズ</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #111;
+            color: white;
+            font-family: "Hiragino Kaku Gothic ProN", sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* === Screen Management === */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* === Shared Components === */
+        h1 {
+            margin: 10px 0;
+            font-size: 1.4rem;
+        }
+
+        .screen-container {
+            position: relative;
+            width: min(90vw, calc((100vh - 350px) * 4 / 3));
+            aspect-ratio: 4 / 3;
+            border: 10px solid #333;
+            border-radius: 10px;
+            background: #000;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .screen-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            image-rendering: pixelated;
+            z-index: 1;
+        }
+
+        .overlay-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            z-index: 2;
+            opacity: 0;
+            transition: opacity 0.1s linear;
+            pointer-events: none;
+        }
+
+        .controls {
+            width: 90%;
+            max-width: min(90vw, calc((100vh - 350px) * 4 / 3));
+            background: #222;
+            padding: 20px;
+            border-radius: 12px;
+        }
+
+        .status-display {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #4db8ff;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            min-height: 3.6em;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .res-label {
+            font-size: 0.9rem;
+            color: #ffeba7;
+            margin-top: 4px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        .btn-big {
+            font-size: 2rem;
+            padding: 20px 60px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            color: white;
+        }
+
+        .btn-big:active {
+            transform: scale(0.95);
+        }
+
+        .btn-big:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-correct {
+            background: #4CAF50;
+        }
+
+        .btn-next {
+            background: #2196F3;
+        }
+
+        .btn-start {
+            background: #FF9800;
+        }
+
+        .btn-small {
+            font-size: 1rem;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-family: inherit;
+            color: white;
+            transition: transform 0.1s;
+        }
+
+        .btn-small:active {
+            transform: scale(0.95);
+        }
+
+        /* === Settings Screen === */
+        #screen-settings h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .settings-panel {
+            width: 90%;
+            max-width: 600px;
+            background: #222;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .question-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .question-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #333;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .question-num {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #4db8ff;
+            white-space: nowrap;
+        }
+
+        .question-thumb {
+            width: 80px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 2px solid #555;
+        }
+
+        .btn-delete {
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        .btn-add-photo {
+            background: #555;
+            color: white;
+            border: 2px dashed #888;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        .btn-add-photo:hover {
+            background: #666;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .mode-btn {
+            padding: 12px 28px;
+            border: 3px solid #555;
+            border-radius: 12px;
+            background: #333;
+            color: #aaa;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .mode-btn.selected {
+            border-color: #4db8ff;
+            background: #1a3a5c;
+            color: #4db8ff;
+        }
+
+        /* === Quiz Screen === */
+        #screen-quiz {
+            justify-content: center;
+        }
+
+        .quiz-question-num {
+            font-size: 1.5rem;
+            color: #4db8ff;
+            margin-bottom: 10px;
+        }
+
+        .quiz-canvas-container {
+            position: relative;
+            width: min(90vw, calc((100vh - 280px) * 4 / 3));
+            aspect-ratio: 4 / 3;
+            border: 10px solid #333;
+            border-radius: 10px;
+            background: #000;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .quiz-canvas-container canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            image-rendering: pixelated;
+        }
+
+        .quiz-prompt {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            color: #ffeba7;
+        }
+
+        .quiz-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .step-indicator {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .step-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #444;
+            transition: background 0.3s;
+        }
+
+        .step-dot.active {
+            background: #4db8ff;
+        }
+
+        .step-dot.past {
+            background: #2a6a9e;
+        }
+
+        /* === Answer Screen === */
+        #screen-answer h1 {
+            font-size: 2rem;
+            color: #4CAF50;
+        }
+
+        .answer-nav {
+            margin-top: 20px;
+        }
+
+        /* === Complete Screen === */
+        #screen-complete {
+            justify-content: center;
+        }
+
+        .complete-title {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .complete-subtitle {
+            font-size: 2rem;
+            color: #ffeba7;
+            margin-bottom: 40px;
+        }
+
+        .complete-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ========== Settings Screen ========== -->
+    <div id="screen-settings" class="screen active">
+        <h1>クイズ の じゅんび</h1>
+
+        <div class="settings-panel">
+            <div id="questionList" class="question-list"></div>
+
+            <button class="btn-add-photo" id="btnAddPhoto">+ しゃしんを ついか</button>
+            <input type="file" id="settingsImageUpload" accept="image/*" multiple style="display:none">
+
+            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #555;">
+                <p style="margin-bottom: 8px; color: #aaa;">もんだいの だしかた</p>
+                <div class="mode-toggle">
+                    <button class="mode-btn selected" data-mode="auto" id="modeAutoBtn">じどう</button>
+                    <button class="mode-btn" data-mode="manual" id="modeManualBtn">ボタン</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-big btn-start" id="btnStartQuiz" disabled>クイズ スタート！</button>
+    </div>
+
+    <!-- ========== Quiz Screen ========== -->
+    <div id="screen-quiz" class="screen">
+        <div class="quiz-question-num" id="quizQuestionNum">もんだい 1 / 1</div>
+
+        <div class="quiz-canvas-container">
+            <canvas id="quizCanvas" width="800" height="600"></canvas>
+            <img id="quizOverlayImage" class="overlay-image" src="" alt="">
+        </div>
+
+        <div class="quiz-prompt">なにが みえるかな？</div>
+
+        <div id="stepIndicator" class="step-indicator" style="display:none;"></div>
+
+        <button class="btn-big btn-correct" id="btnCorrect">せいかい！</button>
+
+        <div class="quiz-controls">
+            <button class="btn-small" id="btnPausePlay" style="background:#FF9800;">⏸ いったんとめる</button>
+            <button class="btn-small" id="btnRevealMore" style="background:#2196F3; display:none;">もうすこし みせる</button>
+            <button class="btn-small" id="btnBackToSettings" style="background:#666;">← もどる</button>
+        </div>
+    </div>
+
+    <!-- ========== Answer Screen ========== -->
+    <div id="screen-answer" class="screen">
+        <h1>せいかい！</h1>
+
+        <div class="screen-container">
+            <canvas id="answerCanvas" width="600" height="450"></canvas>
+            <img id="answerOverlayImage" class="overlay-image" src="" alt="Source">
+        </div>
+
+        <div class="controls">
+            <div class="status-display">
+                <div id="ledCountText">LEDのかず：4こ</div>
+                <div id="resLabelText" class="res-label"></div>
+            </div>
+
+            <label>スムーズ・スライダー</label>
+            <input type="range" id="answerSlider" min="2" max="200" value="2" step="1">
+        </div>
+
+        <div class="answer-nav">
+            <button class="btn-big btn-next" id="btnNextQuestion">つぎの もんだい →</button>
+        </div>
+    </div>
+
+    <!-- ========== Complete Screen ========== -->
+    <div id="screen-complete" class="screen">
+        <div class="complete-title">おしまい！</div>
+        <div class="complete-subtitle">よく できました！</div>
+        <div class="complete-buttons">
+            <button class="btn-big btn-next" id="btnPlayAgain">もういちど あそぶ</button>
+            <button class="btn-big" id="btnBackToSettingsFromComplete" style="background:#666;">せっていに もどる</button>
+        </div>
+    </div>
+
+    <script>
+        // ========================================================
+        // State
+        // ========================================================
+        const quizState = {
+            questions: [],       // { imageDataUrl, imageElement }
+            currentIndex: 0,
+            currentGridSize: 2,
+            currentSliderVal: 2, // 仮想スライダー値 (2〜200)
+            isAutoPlaying: false,
+            autoPlayRAF: null,
+            correctRevealRAF: null,
+            correctRevealTimeout: null,
+            mode: 'auto',        // 'auto' | 'manual'
+            manualStep: 0,
+            phase: 'settings'
+        };
+
+        const MANUAL_STEPS = [2, 5, 8, 12, 18, 25, 35, 50, 70, 100, 140];
+
+        // ========================================================
+        // Screen Management
+        // ========================================================
+        function showScreen(name) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById('screen-' + name).classList.add('active');
+            quizState.phase = name;
+        }
+
+        // ========================================================
+        // Core Rendering: drawPixelated
+        // ========================================================
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d', { willReadFrequently: true });
+
+        function drawPixelated(targetCanvas, targetCtx, sourceImage, gridSize, marginRatio) {
+            const w = targetCanvas.width;
+            const h = targetCanvas.height;
+
+            targetCtx.fillStyle = '#000';
+            targetCtx.fillRect(0, 0, w, h);
+
+            if (!sourceImage.complete || sourceImage.naturalWidth === 0) return;
+
+            try {
+                const drawGrid = Math.min(gridSize, 140);
+                tempCanvas.width = drawGrid;
+                tempCanvas.height = drawGrid;
+                tempCtx.drawImage(sourceImage, 0, 0, drawGrid, drawGrid);
+
+                const imageData = tempCtx.getImageData(0, 0, drawGrid, drawGrid);
+                const data = imageData.data;
+
+                const cellW = w / drawGrid;
+                const cellH = h / drawGrid;
+
+                const mr = marginRatio !== undefined ? marginRatio : 0.15;
+                const margin = cellW * mr;
+                const innerW = cellW - margin * 2;
+                const innerH = cellH - margin * 2;
+                const subPixelW = innerW / 3;
+
+                const boost = 1.3;
+
+                for (let y = 0; y < drawGrid; y++) {
+                    for (let x = 0; x < drawGrid; x++) {
+                        const i = (y * drawGrid + x) * 4;
+                        const r = Math.min(255, data[i] * boost);
+                        const g = Math.min(255, data[i + 1] * boost);
+                        const b = Math.min(255, data[i + 2] * boost);
+
+                        const posX = x * cellW;
+                        const posY = y * cellH;
+
+                        targetCtx.fillStyle = `rgb(${r}, 0, 0)`;
+                        targetCtx.fillRect(posX + margin, posY + margin, subPixelW, innerH);
+
+                        targetCtx.fillStyle = `rgb(0, ${g}, 0)`;
+                        targetCtx.fillRect(posX + margin + subPixelW, posY + margin, subPixelW, innerH);
+
+                        targetCtx.fillStyle = `rgb(0, 0, ${b})`;
+                        targetCtx.fillRect(posX + margin + subPixelW * 2, posY + margin, subPixelW, innerH);
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // ========================================================
+        // Settings Screen
+        // ========================================================
+        const settingsUpload = document.getElementById('settingsImageUpload');
+        const btnAddPhoto = document.getElementById('btnAddPhoto');
+        const btnStartQuiz = document.getElementById('btnStartQuiz');
+        const questionListEl = document.getElementById('questionList');
+        const modeAutoBtn = document.getElementById('modeAutoBtn');
+        const modeManualBtn = document.getElementById('modeManualBtn');
+
+        btnAddPhoto.addEventListener('click', () => settingsUpload.click());
+
+        settingsUpload.addEventListener('change', (e) => {
+            const files = Array.from(e.target.files);
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const dataUrl = event.target.result;
+                    const img = new Image();
+                    img.onload = () => {
+                        quizState.questions.push({
+                            imageDataUrl: dataUrl,
+                            imageElement: img
+                        });
+                        renderQuestionList();
+                    };
+                    img.src = dataUrl;
+                };
+                reader.readAsDataURL(file);
+            });
+            settingsUpload.value = '';
+        });
+
+        function renderQuestionList() {
+            questionListEl.innerHTML = '';
+            quizState.questions.forEach((q, i) => {
+                const row = document.createElement('div');
+                row.className = 'question-row';
+                row.innerHTML = `
+                    <span class="question-num">もんだい ${i + 1}</span>
+                    <img src="${q.imageDataUrl}" class="question-thumb">
+                    <span style="flex:1;"></span>
+                    <button class="btn-delete" data-index="${i}">×</button>
+                `;
+                questionListEl.appendChild(row);
+            });
+
+            // Attach delete handlers
+            questionListEl.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(e.target.dataset.index);
+                    quizState.questions.splice(idx, 1);
+                    renderQuestionList();
+                });
+            });
+
+            btnStartQuiz.disabled = quizState.questions.length === 0;
+        }
+
+        // Mode toggle
+        modeAutoBtn.addEventListener('click', () => {
+            quizState.mode = 'auto';
+            modeAutoBtn.classList.add('selected');
+            modeManualBtn.classList.remove('selected');
+        });
+
+        modeManualBtn.addEventListener('click', () => {
+            quizState.mode = 'manual';
+            modeManualBtn.classList.add('selected');
+            modeAutoBtn.classList.remove('selected');
+        });
+
+        // Start quiz
+        btnStartQuiz.addEventListener('click', () => {
+            quizState.currentIndex = 0;
+            showScreen('quiz');
+            startQuiz();
+        });
+
+        // ========================================================
+        // Quiz Screen
+        // ========================================================
+        const quizCanvas = document.getElementById('quizCanvas');
+        const quizCtx = quizCanvas.getContext('2d');
+        const quizOverlayImg = document.getElementById('quizOverlayImage');
+        const quizQuestionNum = document.getElementById('quizQuestionNum');
+        const btnCorrect = document.getElementById('btnCorrect');
+        const btnPausePlay = document.getElementById('btnPausePlay');
+        const btnRevealMore = document.getElementById('btnRevealMore');
+        const btnBackToSettings = document.getElementById('btnBackToSettings');
+        const stepIndicator = document.getElementById('stepIndicator');
+
+        // drawAnswer() と同等のロジックで問題画面キャンバスを描画
+        function drawQuizFrame(sliderVal) {
+            const question = quizState.questions[quizState.currentIndex];
+            const sliderMax = 200;
+
+            // Grid size (capped at 140)
+            let drawGridSize = Math.min(sliderVal, 140);
+            quizState.currentGridSize = drawGridSize;
+
+            // Crossfade (160〜200 で元画像をフェードイン)
+            const fadeStart = 160;
+            let opacity = 0;
+            if (sliderVal > fadeStart) {
+                opacity = (sliderVal - fadeStart) / (sliderMax - fadeStart);
+            }
+            quizOverlayImg.style.opacity = opacity;
+
+            // Margin (正解画面と同じ計算)
+            let marginRatio = 0.15 * (1 - (sliderVal / sliderMax));
+            if (sliderVal > 180) marginRatio = 0;
+
+            drawPixelated(quizCanvas, quizCtx, question.imageElement, drawGridSize, marginRatio);
+        }
+
+        function startQuiz() {
+            const question = quizState.questions[quizState.currentIndex];
+            const total = quizState.questions.length;
+            quizQuestionNum.textContent = `もんだい ${quizState.currentIndex + 1} / ${total}`;
+
+            quizState.currentGridSize = 2;
+            quizState.currentSliderVal = 2;
+            quizState.manualStep = 0;
+
+            // オーバーレイ画像の初期化
+            quizOverlayImg.src = question.imageDataUrl;
+            quizOverlayImg.style.opacity = 0;
+
+            // ボタン状態のリセット
+            btnCorrect.disabled = false;
+
+            // Draw initial state
+            drawPixelated(quizCanvas, quizCtx, question.imageElement, 2, 0.15);
+
+            if (quizState.mode === 'auto') {
+                startAutoPlay(question);
+                btnPausePlay.style.display = '';
+                btnRevealMore.style.display = 'none';
+                stepIndicator.style.display = 'none';
+            } else {
+                quizState.isAutoPlaying = false;
+                btnPausePlay.style.display = 'none';
+                btnRevealMore.style.display = '';
+                stepIndicator.style.display = 'flex';
+                renderStepIndicator();
+            }
+        }
+
+        // --- Auto Mode ---
+        function startAutoPlay(question) {
+            stopAutoPlay();
+            quizState.isAutoPlaying = true;
+            btnPausePlay.textContent = '⏸ いったんとめる';
+
+            const DURATION = 30000;
+            const startTime = performance.now();
+            const startSlider = 2;
+            const endSlider = 200;
+
+            function tick(now) {
+                if (!quizState.isAutoPlaying || quizState.phase !== 'quiz') return;
+
+                const elapsed = now - startTime;
+                const t = Math.min(elapsed / DURATION, 1.0);
+                const eased = Math.pow(t, 1.8);
+
+                quizState.currentSliderVal = Math.floor(startSlider + eased * (endSlider - startSlider));
+                drawQuizFrame(quizState.currentSliderVal);
+
+                if (t < 1.0) {
+                    quizState.autoPlayRAF = requestAnimationFrame(tick);
+                }
+            }
+
+            quizState.autoPlayRAF = requestAnimationFrame(tick);
+        }
+
+        function stopAutoPlay() {
+            quizState.isAutoPlaying = false;
+            if (quizState.autoPlayRAF) {
+                cancelAnimationFrame(quizState.autoPlayRAF);
+                quizState.autoPlayRAF = null;
+            }
+        }
+
+        function stopCorrectReveal() {
+            if (quizState.correctRevealRAF) {
+                cancelAnimationFrame(quizState.correctRevealRAF);
+                quizState.correctRevealRAF = null;
+            }
+            if (quizState.correctRevealTimeout) {
+                clearTimeout(quizState.correctRevealTimeout);
+                quizState.correctRevealTimeout = null;
+            }
+        }
+
+        btnPausePlay.addEventListener('click', () => {
+            if (quizState.isAutoPlaying) {
+                stopAutoPlay();
+                btnPausePlay.textContent = '▶ つづける';
+            } else {
+                const question = quizState.questions[quizState.currentIndex];
+                resumeAutoPlay(question);
+                btnPausePlay.textContent = '⏸ いったんとめる';
+            }
+        });
+
+        function resumeAutoPlay(question) {
+            stopAutoPlay();
+            quizState.isAutoPlaying = true;
+
+            const DURATION = 30000;
+            const startSlider = 2;
+            const endSlider = 200;
+            // 現在の仮想スライダー値から再開位置を計算
+            const currentProgress = (quizState.currentSliderVal - startSlider) / (endSlider - startSlider);
+            const currentT = Math.pow(currentProgress, 1 / 1.8);
+            const resumeOffset = currentT * DURATION;
+            const startTime = performance.now() - resumeOffset;
+
+            function tick(now) {
+                if (!quizState.isAutoPlaying || quizState.phase !== 'quiz') return;
+
+                const elapsed = now - startTime;
+                const t = Math.min(elapsed / DURATION, 1.0);
+                const eased = Math.pow(t, 1.8);
+
+                quizState.currentSliderVal = Math.floor(startSlider + eased * (endSlider - startSlider));
+                drawQuizFrame(quizState.currentSliderVal);
+
+                if (t < 1.0) {
+                    quizState.autoPlayRAF = requestAnimationFrame(tick);
+                }
+            }
+
+            quizState.autoPlayRAF = requestAnimationFrame(tick);
+        }
+
+        // --- Manual Mode ---
+        btnRevealMore.addEventListener('click', () => {
+            if (quizState.manualStep < MANUAL_STEPS.length - 1) {
+                quizState.manualStep++;
+                // MANUAL_STEPS は drawGridSize (2〜140) なので、仮想スライダー値に換算
+                quizState.currentSliderVal = MANUAL_STEPS[quizState.manualStep];
+                drawQuizFrame(quizState.currentSliderVal);
+                renderStepIndicator();
+            }
+        });
+
+        function renderStepIndicator() {
+            stepIndicator.innerHTML = '';
+            MANUAL_STEPS.forEach((_, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'step-dot';
+                if (i < quizState.manualStep) dot.classList.add('past');
+                if (i === quizState.manualStep) dot.classList.add('active');
+                stepIndicator.appendChild(dot);
+            });
+        }
+
+        // --- Correct button: 演出アニメーション後に正解画面へ遷移 ---
+        function playCorrectReveal() {
+            stopAutoPlay();
+            stopCorrectReveal();
+
+            // ボタンを無効化（連打防止）
+            btnCorrect.disabled = true;
+
+            const REVEAL_DURATION = 3000; // 3秒で現在値→200
+            const startSlider = quizState.currentSliderVal;
+            const endSlider = 200;
+            const startTime = performance.now();
+
+            function tick(now) {
+                if (quizState.phase !== 'quiz') return;
+
+                const elapsed = now - startTime;
+                const t = Math.min(elapsed / REVEAL_DURATION, 1.0);
+
+                const currentVal = Math.floor(startSlider + t * (endSlider - startSlider));
+                quizState.currentSliderVal = currentVal;
+                drawQuizFrame(currentVal);
+
+                if (t < 1.0) {
+                    quizState.correctRevealRAF = requestAnimationFrame(tick);
+                } else {
+                    // 元画像完全表示、3秒待機後に正解画面へ
+                    quizState.correctRevealTimeout = setTimeout(() => {
+                        quizOverlayImg.style.opacity = 0;
+                        showScreen('answer');
+                        initAnswerScreen();
+                    }, 3000);
+                }
+            }
+
+            quizState.correctRevealRAF = requestAnimationFrame(tick);
+        }
+
+        btnCorrect.addEventListener('click', () => {
+            stopAutoPlay();
+            if (quizState.currentSliderVal >= 200) {
+                // 元画像が既に表示済みなら即遷移
+                quizOverlayImg.style.opacity = 0;
+                showScreen('answer');
+                initAnswerScreen();
+            } else {
+                playCorrectReveal();
+            }
+        });
+
+        // --- Back to settings ---
+        btnBackToSettings.addEventListener('click', () => {
+            stopAutoPlay();
+            stopCorrectReveal();
+            quizOverlayImg.style.opacity = 0;
+            btnCorrect.disabled = false;
+            showScreen('settings');
+        });
+
+        // ========================================================
+        // Answer Screen
+        // ========================================================
+        const answerCanvas = document.getElementById('answerCanvas');
+        const answerCtx = answerCanvas.getContext('2d');
+        const answerOverlayImg = document.getElementById('answerOverlayImage');
+        const answerSlider = document.getElementById('answerSlider');
+        const ledCountText = document.getElementById('ledCountText');
+        const resLabelText = document.getElementById('resLabelText');
+        const btnNextQuestion = document.getElementById('btnNextQuestion');
+
+        function initAnswerScreen() {
+            const question = quizState.questions[quizState.currentIndex];
+            answerOverlayImg.src = question.imageDataUrl;
+            answerSlider.value = 2;
+
+            // Update button text
+            if (quizState.currentIndex < quizState.questions.length - 1) {
+                btnNextQuestion.textContent = 'つぎの もんだい →';
+            } else {
+                btnNextQuestion.textContent = 'けっか を みる';
+            }
+
+            answerOverlayImg.onload = () => requestAnimationFrame(drawAnswer);
+            // In case already loaded (same data URL)
+            if (answerOverlayImg.complete) {
+                requestAnimationFrame(drawAnswer);
+            }
+        }
+
+        function drawAnswer() {
+            const rawSliderVal = parseInt(answerSlider.value);
+            const sliderMax = parseInt(answerSlider.max);
+
+            // Draw grid size (capped at 140)
+            const drawLimit = 140;
+            let drawGridSize = Math.min(rawSliderVal, drawLimit);
+
+            // Display grid size (escalated for wow effect)
+            let displayGridSize = rawSliderVal;
+            const threshold = 120;
+
+            if (rawSliderVal > threshold) {
+                const progress = (rawSliderVal - threshold) / (sliderMax - threshold);
+                const maxRes = 3840;
+                displayGridSize = Math.floor(threshold + (maxRes - threshold) * Math.pow(progress, 2.5));
+            }
+
+            // Text updates
+            const totalLeds = displayGridSize * displayGridSize;
+            ledCountText.innerText = `たて${displayGridSize} x よこ${displayGridSize} = LED ${totalLeds.toLocaleString()}こ`;
+
+            let label = "";
+            if (displayGridSize >= 3800) label = "★ 4Kテレビ (ものすごくキレイ！)";
+            else if (displayGridSize >= 1900) label = "★ フルハイビジョン (おうちのテレビ)";
+            else if (displayGridSize >= 1200) label = "★ ハイビジョン (YouTubeくらい)";
+            else if (displayGridSize >= 700) label = "★ むかしのテレビ";
+            else if (displayGridSize < 10) label = "★ ？？？ (なんだかわからない)";
+            resLabelText.innerText = label;
+
+            // Crossfade
+            const fadeStart = 160;
+            let opacity = 0;
+            if (rawSliderVal > fadeStart) {
+                opacity = (rawSliderVal - fadeStart) / (sliderMax - fadeStart);
+            }
+            answerOverlayImg.style.opacity = opacity;
+
+            // Margin
+            let marginRatio = 0.15 * (1 - (rawSliderVal / sliderMax));
+            if (rawSliderVal > 180) marginRatio = 0;
+
+            drawPixelated(answerCanvas, answerCtx, answerOverlayImg, drawGridSize, marginRatio);
+        }
+
+        answerSlider.addEventListener('input', () => requestAnimationFrame(drawAnswer));
+
+        btnNextQuestion.addEventListener('click', () => {
+            if (quizState.currentIndex < quizState.questions.length - 1) {
+                quizState.currentIndex++;
+                quizState.currentGridSize = 2;
+                quizState.manualStep = 0;
+                showScreen('quiz');
+                startQuiz();
+            } else {
+                showScreen('complete');
+            }
+        });
+
+        // ========================================================
+        // Complete Screen
+        // ========================================================
+        const btnPlayAgain = document.getElementById('btnPlayAgain');
+        const btnBackToSettingsFromComplete = document.getElementById('btnBackToSettingsFromComplete');
+
+        btnPlayAgain.addEventListener('click', () => {
+            quizState.currentIndex = 0;
+            quizState.currentGridSize = 2;
+            quizState.manualStep = 0;
+            showScreen('quiz');
+            startQuiz();
+        });
+
+        btnBackToSettingsFromComplete.addEventListener('click', () => {
+            showScreen('settings');
+        });
+    </script>
+</body>
+
+</html>
